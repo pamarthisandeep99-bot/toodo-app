@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeSync Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: '#ffffff',
+            foreground: '#09090b',
+            card: '#ffffff',
+            'card-foreground': '#09090b',
+            primary: '#18181b',
+            'primary-foreground': '#fafafa',
+            secondary: '#f4f4f5',
+            'secondary-foreground': '#18181b',
+            muted: '#f4f4f5',
+            'muted-foreground': '#71717a',
+            destructive: '#ef4444',
+            'destructive-foreground': '#fafafa',
+            border: '#e4e4e7',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: theme('colors.background'); color: theme('colors.foreground'); }
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen bg-background flex relative overflow-hidden">
+  
+  <!-- Ambient Background -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 flex items-center justify-center">
+    <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]"></div>
+    <div class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[120px]"></div>
+    <div class="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] rounded-full bg-pink-500/10 blur-[120px]"></div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="w-64 border-r border-border bg-card/60 backdrop-blur-2xl hidden md:flex flex-col relative z-10">
+    <div class="h-16 flex items-center px-6 border-b border-border">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center">
+          <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="font-bold text-xl tracking-tight">LifeSync</span>
+      </div>
+    </div>
+    <nav class="flex-1 py-6 px-4 space-y-1" id="nav-links">
+      <button onclick="setActiveTab('overview')" id="tab-btn-overview" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer bg-secondary text-secondary-foreground">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Overview
+      </button>
+      <button onclick="setActiveTab('tasks')" id="tab-btn-tasks" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer text-muted-foreground hover:bg-secondary/50 hover:text-foreground">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i> Tasks
+      </button>
+      <button onclick="setActiveTab('calendar')" id="tab-btn-calendar" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer text-muted-foreground hover:bg-secondary/50 hover:text-foreground">
+        <i data-lucide="calendar" class="w-5 h-5"></i> Calendar
+      </button>
+      <button onclick="setActiveTab('habits')" id="tab-btn-habits" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer text-muted-foreground hover:bg-secondary/50 hover:text-foreground">
+        <i data-lucide="clock" class="w-5 h-5"></i> Habits
+      </button>
+      <button onclick="setActiveTab('futureWorks')" id="tab-btn-futureWorks" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer text-muted-foreground hover:bg-secondary/50 hover:text-foreground">
+        <i data-lucide="fast-forward" class="w-5 h-5"></i> Future Works
+      </button>
+    </nav>
+    <div class="p-4 border-t border-border">
+      <a href="#" class="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-secondary/50 hover:text-foreground rounded-lg font-medium transition-colors">
+        <i data-lucide="settings" class="w-5 h-5"></i> Settings
+      </a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg font-medium transition-colors mt-1">
+        <i data-lucide="log-out" class="w-5 h-5"></i> Log out
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden relative z-10">
+    <!-- Header -->
+    <header class="h-16 border-b border-border bg-card/50 backdrop-blur-2xl flex items-center justify-between px-6 sticky top-0 z-20">
+      <div class="flex items-center gap-4 flex-1">
+        <div class="relative w-64 hidden sm:block">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+          <input type="text" placeholder="Search..." class="w-full h-9 bg-secondary/50 border border-border rounded-full pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all">
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-secondary transition-colors relative">
+          <i data-lucide="bell" class="w-5 h-5 text-muted-foreground"></i>
+          <span class="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border-2 border-card"></span>
+        </button>
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 p-[2px] cursor-pointer">
+          <div class="w-full h-full rounded-full bg-card border-2 border-transparent overflow-hidden">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User">
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Container -->
+    <div class="flex-1 overflow-y-auto p-6 md:p-8">
+      <div id="main-content" class="max-w-5xl mx-auto space-y-8 fade-in">
+        <!-- Dynamic content injected here -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="notification-toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-card border border-border/40 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px] fade-in">
+    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+      <i data-lucide="bell" class="w-5 h-5 text-primary"></i>
+    </div>
+    <div class="flex-1">
+      <h4 class="font-bold text-sm">Notification</h4>
+      <p id="notification-text" class="text-sm text-muted-foreground"></p>
+    </div>
+    <button onclick="closeNotification()" class="p-2 hover:bg-secondary rounded-full transition-colors cursor-pointer text-muted-foreground">
+      &times;
+    </button>
+  </div>
+
+  <script>
+    // ----- STATE MANAGEMENT -----
+    const STORAGE_PREFIX = 'lifesync_html_';
+    
+    let state = {
+      activeTab: 'overview',
+      tasks: JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'tasks')) || [
+        { id: 1, title: "Review product roadmap", time: "10:00 AM", category: "Work", priority: "high", completed: false },
+        { id: 2, title: "Workout session", time: "5:30 PM", category: "Personal", priority: "medium", completed: false },
+        { id: 3, title: "Read 10 pages of 'Atomic Habits'", time: "9:00 PM", category: "Growth", priority: "low", completed: false }
+      ],
+      habits: JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'habits')) || [
+        { id: 1, title: 'Drink 2L Water', completedToday: false, streak: 12, icon: 'droplets', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+        { id: 2, title: 'Morning Workout', completedToday: true, streak: 4, icon: 'flame', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+        { id: 3, title: 'Read 30 mins', completedToday: false, streak: 0, icon: 'book-open', color: 'text-purple-500', bg: 'bg-purple-500/10' }
+      ],
+      futureWorks: JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'future_works')) || [
+        { id: 1, title: 'Project Deadline', date: getFutureDate(2), notified: false },
+        { id: 2, title: 'Dentist Appointment', date: getFutureDate(0), notified: false }
+      ],
+      focusTime: localStorage.getItem(STORAGE_PREFIX + 'focus_time') || "4h 20m",
+      calendarDate: new Date()
+    };
+
+    function saveState(key) {
+      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(state[key]));
+    }
+
+    function getFutureDate(daysToAdd) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysToAdd);
+      return d.toISOString().split('T')[0];
+    }
+
+    // Dynamic Streak
+    const dynamicStreak = Math.max(0, Math.floor((new Date().getTime() - new Date('2026-05-10').getTime()) / (1000 * 60 * 60 * 24)));
+
+    // ----- ACTIONS -----
+    function setActiveTab(tab) {
+      state.activeTab = tab;
+      
+      // Update nav styles
+      document.querySelectorAll('#nav-links button').forEach(btn => {
+        btn.className = 'w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer text-muted-foreground hover:bg-secondary/50 hover:text-foreground';
+      });
+      const activeBtn = document.getElementById('tab-btn-' + tab);
+      if(activeBtn) {
+        activeBtn.className = 'w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer bg-secondary text-secondary-foreground';
+      }
+      
+      render();
+    }
+
+    function toggleTask(id) {
+      state.tasks = state.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      saveState('tasks');
+      render();
+    }
+
+    function deleteTask(id) {
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      saveState('tasks');
+      render();
+    }
+
+    function addTask(event) {
+      event.preventDefault();
+      const input = document.getElementById('new-task-input');
+      const title = input.value.trim();
+      if (!title) return;
+      
+      state.tasks.push({
+        id: Date.now(),
+        title: title,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        category: "Personal",
+        priority: "medium",
+        completed: false
+      });
+      saveState('tasks');
+      render();
+    }
+
+    function toggleHabit(id) {
+      state.habits = state.habits.map(h => {
+        if (h.id === id) {
+          const isCompleted = !h.completedToday;
+          return { ...h, completedToday: isCompleted, streak: isCompleted ? h.streak + 1 : Math.max(0, h.streak - 1) };
+        }
+        return h;
+      });
+      saveState('habits');
+      render();
+    }
+
+    function addFutureWork(event) {
+      event.preventDefault();
+      const title = document.getElementById('fw-title').value.trim();
+      const date = document.getElementById('fw-date').value;
+      if (!title || !date) return;
+
+      state.futureWorks.push({
+        id: Date.now(),
+        title,
+        date,
+        notified: false
+      });
+      saveState('futureWorks');
+      render();
+    }
+
+    function completeFutureWork(id) {
+      state.futureWorks = state.futureWorks.filter(fw => fw.id !== id);
+      saveState('futureWorks');
+      render();
+    }
+
+    function editFocusTime() {
+      const val = prompt("Enter Focus Time", state.focusTime);
+      if (val !== null) {
+        state.focusTime = val;
+        localStorage.setItem(STORAGE_PREFIX + 'focus_time', val);
+        render();
+      }
+    }
+
+    function changeCalendarMonth(offset) {
+      if (offset === 0) {
+        state.calendarDate = new Date();
+      } else {
+        state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + offset, 1);
+      }
+      render();
+    }
+
+    function closeNotification() {
+      document.getElementById('notification-toast').classList.add('hidden');
+    }
+
+    // ----- RENDERING -----
+    function render() {
+      const container = document.getElementById('main-content');
+      
+      if (state.activeTab === 'overview') {
+        const completedCount = state.tasks.filter(t => t.completed).length;
+        const progressPercentage = state.tasks.length === 0 ? 0 : Math.round((completedCount / state.tasks.length) * 100);
+
+        container.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-bold tracking-tight mb-1">Good morning, Sandeep! ☀️</h1>
+              <p class="text-muted-foreground">You have ${state.tasks.filter(t => !t.completed).length} tasks remaining today. Let's make it a great day.</p>
+            </div>
+            <form onsubmit="addTask(event)" class="flex items-center gap-2 relative z-20">
+              <input id="new-task-input" type="text" placeholder="Add a new task..." class="h-10 bg-secondary/50 border border-border rounded-full pl-4 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-64">
+              <button type="submit" class="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full font-medium hover:bg-primary/90 transition-colors shadow-sm h-10 cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4 pointer-events-none"></i> Add
+              </button>
+            </form>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-card/60 backdrop-blur-xl p-5 rounded-2xl border border-border/40 shadow-sm">
+              <p class="text-sm font-medium text-muted-foreground mb-1">Daily Progress</p>
+              <p class="text-3xl font-bold text-blue-500">${progressPercentage}%</p>
+              <p class="text-xs text-muted-foreground mt-2">${completedCount} of ${state.tasks.length} tasks completed</p>
+            </div>
+            <div class="bg-card/60 backdrop-blur-xl p-5 rounded-2xl border border-border/40 shadow-sm">
+              <p class="text-sm font-medium text-muted-foreground mb-1">Tasks Completed</p>
+              <p class="text-3xl font-bold text-green-500">${completedCount}</p>
+              <p class="text-xs text-muted-foreground mt-2">Today</p>
+            </div>
+            <div class="bg-card/60 backdrop-blur-xl p-5 rounded-2xl border border-border/40 shadow-sm cursor-text hover:opacity-80 transition-opacity group" onclick="editFocusTime()">
+              <p class="text-sm font-medium text-muted-foreground mb-1">Focus Time</p>
+              <div class="flex items-center gap-2">
+                <p class="text-3xl font-bold text-purple-500">${state.focusTime}</p>
+                <i data-lucide="edit-2" class="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <p class="text-xs text-muted-foreground mt-2">Today</p>
+            </div>
+            <div class="bg-card/60 backdrop-blur-xl p-5 rounded-2xl border border-border/40 shadow-sm">
+              <p class="text-sm font-medium text-muted-foreground mb-1">Current Streak</p>
+              <p class="text-3xl font-bold text-orange-500">${dynamicStreak} Days</p>
+              <p class="text-xs text-muted-foreground mt-2">Keep it up!</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold">Today's Schedule</h2>
+                <a href="#" onclick="setActiveTab('tasks')" class="text-sm text-blue-500 hover:text-blue-600 font-medium">View all</a>
+              </div>
+              <div class="bg-card/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl overflow-hidden">
+                <div class="divide-y divide-border/40">
+                  ${state.tasks.map(task => `
+                    <div class="p-4 transition-colors flex items-center justify-between group ${task.completed ? 'bg-green-500/5' : 'hover:bg-secondary/20'}">
+                      <div class="flex items-center gap-4">
+                        <button onclick="toggleTask(${task.id})" class="relative z-10 cursor-pointer w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.completed ? 'bg-green-500 border-green-500' : 'border-muted-foreground/30 group-hover:border-blue-500'}">
+                          <i data-lucide="check-circle-2" class="pointer-events-none w-4 h-4 text-white transition-opacity ${task.completed ? 'opacity-100' : 'opacity-0 text-blue-500'}"></i>
+                        </button>
+                        <div>
+                          <p class="font-medium transition-all ${task.completed ? 'line-through text-muted-foreground' : ''}">${task.title}</p>
+                          <div class="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                            <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> ${task.time}</span>
+                            <span class="px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">${task.category}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <button onclick="deleteTask(${task.id})" class="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-destructive/10 text-destructive transition-all cursor-pointer relative z-10">
+                          <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+                        </button>
+                        <div class="w-2 h-2 rounded-full ${task.completed ? 'bg-green-500/50' : task.priority === 'high' ? 'bg-red-500' : task.priority === 'medium' ? 'bg-orange-500' : 'bg-green-500'}"></div>
+                      </div>
+                    </div>
+                  `).join('')}
+                  ${state.tasks.length === 0 ? '<div class="text-center py-8 text-muted-foreground text-sm">No tasks yet.</div>' : ''}
+                </div>
+              </div>
+            </div>
+            
+            <div class="space-y-4">
+              <h2 class="text-xl font-bold">AI Insight</h2>
+              <div class="p-5 rounded-2xl border border-purple-500/30 bg-purple-500/10 backdrop-blur-xl relative overflow-hidden shadow-sm">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="flex items-start gap-3 relative z-10">
+                  <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
+                    <i data-lucide="brain-circuit" class="w-4 h-4 text-purple-500"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium mb-1">Optimal Focus Time</p>
+                    <p class="text-sm text-muted-foreground leading-relaxed mb-4">Based on your past week, you are most productive between 10:00 AM and 12:00 PM.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      else if (state.activeTab === 'tasks') {
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h1 class="text-3xl font-bold tracking-tight">All Tasks</h1>
+          </div>
+          <div class="bg-card/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl overflow-hidden">
+            <div class="divide-y divide-border/40">
+              ${state.tasks.map(task => `
+                <div class="p-4 transition-colors flex items-center justify-between group ${task.completed ? 'bg-green-500/5' : 'hover:bg-secondary/20'}">
+                  <div class="flex items-center gap-4">
+                    <button onclick="toggleTask(${task.id})" class="relative z-10 cursor-pointer w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.completed ? 'bg-green-500 border-green-500' : 'border-muted-foreground/30 group-hover:border-blue-500'}">
+                      <i data-lucide="check-circle-2" class="pointer-events-none w-4 h-4 text-white transition-opacity ${task.completed ? 'opacity-100' : 'opacity-0 text-blue-500'}"></i>
+                    </button>
+                    <div class="transition-all ${task.completed ? 'opacity-50 line-through' : ''}">
+                      <p class="font-medium">${task.title}</p>
+                      <p class="text-xs text-muted-foreground">${task.time} • ${task.category}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <span class="text-xs px-2 py-1 rounded-md font-medium ${task.priority === 'high' ? 'bg-red-500/10 text-red-500' : task.priority === 'medium' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-blue-500/10 text-blue-500'}">${task.priority}</span>
+                    <button onclick="deleteTask(${task.id})" class="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-red-500 transition-all cursor-pointer rounded-full hover:bg-red-500/10">
+                      <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+              ${state.tasks.length === 0 ? '<div class="text-center py-12 text-muted-foreground text-sm">You have no tasks!</div>' : ''}
+            </div>
+          </div>
+        `;
+      }
+      else if (state.activeTab === 'calendar') {
+        const currentDate = new Date();
+        const currentMonthName = state.calendarDate.toLocaleString('default', { month: 'long' });
+        const currentYear = state.calendarDate.getFullYear();
+        const daysInMonth = new Date(currentYear, state.calendarDate.getMonth() + 1, 0).getDate();
+        const firstDayOfMonth = new Date(currentYear, state.calendarDate.getMonth(), 1).getDay();
+        const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+        const blanksArray = Array.from({ length: firstDayOfMonth }, (_, i) => i);
+
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h1 class="text-3xl font-bold tracking-tight">${currentMonthName} ${currentYear}</h1>
+            <div class="flex gap-2">
+              <button onclick="changeCalendarMonth(-1)" class="px-4 py-2 border border-border bg-card rounded-full text-sm font-medium hover:bg-secondary transition-colors cursor-pointer">Previous</button>
+              <button onclick="changeCalendarMonth(0)" class="px-4 py-2 border border-border bg-card rounded-full text-sm font-medium hover:bg-secondary transition-colors cursor-pointer">Today</button>
+              <button onclick="changeCalendarMonth(1)" class="px-4 py-2 border border-border bg-card rounded-full text-sm font-medium hover:bg-secondary transition-colors cursor-pointer">Next</button>
+            </div>
+          </div>
+          <div class="bg-card/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl overflow-hidden">
+            <div class="grid grid-cols-7 border-b border-border/40 bg-secondary/30">
+              ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => `
+                <div class="py-3 text-center text-sm font-medium text-muted-foreground">${day}</div>
+              `).join('')}
+            </div>
+            <div class="grid grid-cols-7 auto-rows-fr">
+              ${blanksArray.map(() => `<div class="min-h-[120px] p-2 border-b border-r border-border/40 bg-secondary/10"></div>`).join('')}
+              ${daysArray.map(day => {
+                const isToday = day === currentDate.getDate() && 
+                                state.calendarDate.getMonth() === currentDate.getMonth() && 
+                                state.calendarDate.getFullYear() === currentDate.getFullYear();
+                return `
+                  <div class="min-h-[120px] p-2 border-b border-r border-border/40 transition-colors hover:bg-secondary/20 group cursor-pointer ${isToday ? 'bg-primary/5' : ''}">
+                    <div class="w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium mb-1 ${isToday ? 'bg-primary text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}">
+                      ${day}
+                    </div>
+                    ${isToday ? `
+                      <div class="mt-1 px-2 py-1 bg-blue-500/10 text-blue-500 text-xs rounded-md truncate font-medium border border-blue-500/20">
+                        Productivity Sync
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+      else if (state.activeTab === 'habits') {
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h1 class="text-3xl font-bold tracking-tight">Daily Habits</h1>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${state.habits.map(habit => `
+              <div onclick="toggleHabit(${habit.id})" class="bg-card/60 backdrop-blur-xl p-6 rounded-2xl border ${habit.completedToday ? 'border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'border-border/40 shadow-sm'} relative overflow-hidden group cursor-pointer transition-all hover:-translate-y-1">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl ${habit.bg} flex items-center justify-center">
+                    <i data-lucide="${habit.icon}" class="w-6 h-6 ${habit.color}"></i>
+                  </div>
+                  <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${habit.completedToday ? 'bg-green-500 border-green-500' : 'border-border group-hover:border-green-500/50'}">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-white transition-opacity ${habit.completedToday ? 'opacity-100' : 'opacity-0'}"></i>
+                  </div>
+                </div>
+                <h3 class="font-bold text-lg mb-1">${habit.title}</h3>
+                <div class="flex items-center gap-2 mt-4">
+                  <i data-lucide="flame" class="w-4 h-4 ${habit.streak > 0 ? 'text-orange-500' : 'text-muted-foreground'}"></i>
+                  <span class="text-sm font-medium text-muted-foreground">${habit.streak} ${habit.streak === 1 ? 'day' : 'days'} streak</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      else if (state.activeTab === 'futureWorks') {
+        const todayStr = new Date().toISOString().split('T')[0];
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h1 class="text-3xl font-bold tracking-tight">Future Works</h1>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-card/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl p-6 h-fit">
+              <h3 class="text-lg font-bold mb-4">Schedule New Work</h3>
+              <form onsubmit="addFutureWork(event)" class="space-y-4">
+                <div>
+                  <label class="text-sm font-medium text-muted-foreground mb-1 block">What to do?</label>
+                  <input id="fw-title" type="text" placeholder="e.g. Plan vacation" class="w-full h-10 bg-secondary/50 border border-border rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all">
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-muted-foreground mb-1 block">When?</label>
+                  <input id="fw-date" type="date" class="w-full h-10 bg-secondary/50 border border-border rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-muted-foreground">
+                </div>
+                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-sm cursor-pointer">
+                  <i data-lucide="plus" class="w-4 h-4 pointer-events-none"></i> Schedule Work
+                </button>
+              </form>
+            </div>
+            <div class="bg-card/60 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl p-6">
+              <h3 class="text-lg font-bold mb-4">Upcoming Schedule</h3>
+              <div class="space-y-3">
+                ${state.futureWorks.map(work => {
+                  const isToday = work.date === todayStr;
+                  return `
+                    <div class="p-4 rounded-xl border flex items-center justify-between group transition-colors hover:bg-secondary/20 ${isToday ? 'bg-primary/5 border-primary/30' : 'bg-card border-border/40'}">
+                      <div>
+                        <p class="font-bold text-base group-hover:text-primary transition-colors">${work.title}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                          <i data-lucide="clock" class="w-3 h-3 text-muted-foreground"></i>
+                          <span class="text-xs ${isToday ? 'text-primary font-bold' : 'text-muted-foreground'}">${isToday ? 'Today' : work.date}</span>
+                        </div>
+                      </div>
+                      <button onclick="completeFutureWork(${work.id})" class="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-green-500 transition-all cursor-pointer rounded-full hover:bg-green-500/10">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 pointer-events-none"></i>
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+                ${state.futureWorks.length === 0 ? '<div class="text-center py-10 text-muted-foreground text-sm">No future works scheduled.</div>' : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Re-initialize icons after DOM update
+      lucide.createIcons();
+    }
+
+    // Initialize notification check
+    window.onload = () => {
+      const today = new Date().toISOString().split('T')[0];
+      const dueWork = state.futureWorks.find(work => work.date === today && !work.notified);
+      
+      if (dueWork) {
+        document.getElementById('notification-text').innerText = `Reminder: It's time for "${dueWork.title}"!`;
+        document.getElementById('notification-toast').classList.remove('hidden');
+        
+        state.futureWorks = state.futureWorks.map(w => w.id === dueWork.id ? { ...w, notified: true } : w);
+        saveState('futureWorks');
+      }
+      render();
+    };
+  </script>
+</body>
+</html>
